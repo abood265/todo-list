@@ -1,0 +1,9 @@
+.listy{
+    font-size: 25px;
+    margin:10px
+}
+.listy:hover{
+    background-color: yellow;
+    cursor:pointer;
+ 
+}
