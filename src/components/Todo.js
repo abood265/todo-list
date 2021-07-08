@@ -1,19 +1,38 @@
-import React,{useState} from 'react';
-import {TextField,Button} from '@material-ui/core';
+import React,{useState,useEffect} from 'react';
+import {TextField,Button,List,ListItem,ListItemText} from '@material-ui/core';
 import SaveIcon from '@material-ui/icons/Save';
 import './Todo.css';
+import db from '../firebase'
+
 
 
 function Todo() {
     const [input, setInput] = useState('');
     const [todolist, setTodolist] = useState([])
+
+
+    const handleSendMessage = async () => {
+        await db.collection('todos').add({
+          item: input,
+        })
+      }
     const handleChange =(e)=>{
         setInput(e.target.value)
     };
-    const save=()=>{
-        todolist.push(input)
-        setTodolist([...todolist])
-        }
+   
+    const deleteTodo = async (id)=>{  
+      await db.collection('todos').doc(id).delete()
+    }
+    
+    useEffect(() => {
+      db.collection('todos').onSnapshot((docs) => {
+        let temp = []
+        docs.forEach(doc => {
+          temp.push({...doc.data(),id:doc.id})
+        })
+        setTodolist(temp)
+      })
+    }, [])  
     return (
        
         <div>
@@ -34,21 +53,18 @@ function Todo() {
         color="primary"
         size="large"
         startIcon={<SaveIcon />}
-        onClick={save}
+        onClick={handleSendMessage}
         >
         </Button>
         </form>
 
-       <ul>
-          {todolist.map((t)=>(
-              <li className='listy'  onClick={()=> { todolist.splice(todolist.indexOf(t),1);
-                setTodolist([...todolist])
-                 }
-              }>{t}
-              </li>
-              
-          ))}
-        </ul>
+        <List component="nav">
+            {todolist.map((item,e) => (
+              <ListItem button onClick={()=>{deleteTodo(item.id)}}>
+                <ListItemText primary={item.item} />
+              </ListItem>
+            ))}
+          </List>
 
         </div>
     )
